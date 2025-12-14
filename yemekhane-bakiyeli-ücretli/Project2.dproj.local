@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.166,=C:\Users\Erdem\OneDrive\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.082,C:\Users\Erdem\OneDrive\Masaüstü\Yeni klasör\Unit2.dfm=C:\Users\Erdem\OneDrive\Documents\Embarcadero\Studio\Projects\Unit2.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.914,=C:\Users\Erdem\OneDrive\Masaüstü\Masaüstü\yemekhane\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.568,C:\Users\Erdem\OneDrive\Masaüstü\Masaüstü\yemekhane\Unit1.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.046,=C:\Users\Erdem\OneDrive\Masaüstü\Masaüstü\yemekhane\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.411,=D:\yemekhane-bakiyeli-ücretli\Unit3.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.184,C:\Users\Erdem\OneDrive\Masaüstü\Yeni klasör\Project2.dproj=C:\Users\Erdem\OneDrive\Documents\Embarcadero\Studio\Projects\Project2.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.082,C:\Users\Erdem\OneDrive\Masaüstü\Yeni klasör\Unit2.pas=C:\Users\Erdem\OneDrive\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.927,D:\yemekhane-bakiyeli-ücretli\Unit3.dfm=D:\yemekhane-bakiyeli-ücretli\UnitLogin.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.010,D:\yemekhane-bakiyeli-ücretli\UnitLogin.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.927,D:\yemekhane-bakiyeli-ücretli\Unit3.pas=D:\yemekhane-bakiyeli-ücretli\UnitLogin.pas</Transaction>
+  </Transactions>
+</BorlandProject>

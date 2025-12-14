@@ -1,0 +1,133 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  System.JSON, System.IOUtils;
+
+type
+  TForm1 = class(TForm)
+    Edit1: TEdit;   // Uye No (ID)
+    Edit2: TEdit;   // Kart ID
+    Edit3: TEdit;   // Isim Soyisim
+    Edit4: TEdit;   // Kisi
+    Edit5: TEdit;   // Ucret
+
+    Button1: TButton; // GETIR
+    Button2: TButton; // KAYDET
+    Button3: TButton; // KAPAT
+
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+  private
+    procedure UyeGetir;
+    procedure UyeGuncelle;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function JSONValueToStr(Obj: TJSONObject; const Key: string): string;
+var
+  V: TJSONValue;
+begin
+  Result := '';
+  V := Obj.GetValue(Key);
+  if V <> nil then
+    Result := V.Value;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  UyeGetir;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  UyeGuncelle;
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TForm1.UyeGetir;
+var
+  FileName, JSONString: string;
+  Arr: TJSONArray;
+  Obj: TJSONObject;
+  i: Integer;
+begin
+  FileName := TPath.Combine(TPath.GetDocumentsPath, 'veriler.json');
+  if not TFile.Exists(FileName) then Exit;
+
+  JSONString := TFile.ReadAllText(FileName, TEncoding.UTF8);
+  Arr := TJSONObject.ParseJSONValue(JSONString) as TJSONArray;
+  if Arr = nil then Exit;
+
+  for i := 0 to Arr.Count - 1 do
+  begin
+    Obj := Arr.Items[i] as TJSONObject;
+
+    if JSONValueToStr(Obj, 'ID') = Trim(Edit1.Text) then
+    begin
+      Edit2.Text := JSONValueToStr(Obj, 'kart_id');
+      Edit3.Text := JSONValueToStr(Obj, 'isim_soyisim');
+      Edit4.Text := JSONValueToStr(Obj, 'kisi');
+      Edit5.Text := JSONValueToStr(Obj, 'ucret');
+      Exit;
+    end;
+  end;
+
+  MessageDlg('Uye bulunamadi', mtError, [mbOK], 0);
+end;
+
+procedure TForm1.UyeGuncelle;
+var
+  FileName, JSONString: string;
+  Arr: TJSONArray;
+  Obj: TJSONObject;
+  i: Integer;
+begin
+  FileName := TPath.Combine(TPath.GetDocumentsPath, 'veriler.json');
+  if not TFile.Exists(FileName) then Exit;
+
+  JSONString := TFile.ReadAllText(FileName, TEncoding.UTF8);
+  Arr := TJSONObject.ParseJSONValue(JSONString) as TJSONArray;
+  if Arr = nil then Exit;
+
+  for i := 0 to Arr.Count - 1 do
+  begin
+    Obj := Arr.Items[i] as TJSONObject;
+
+    if JSONValueToStr(Obj, 'ID') = Trim(Edit1.Text) then
+    begin
+      Obj.RemovePair('kart_id');
+      Obj.RemovePair('isim_soyisim');
+      Obj.RemovePair('kisi');
+      Obj.RemovePair('ucret');
+
+      Obj.AddPair('kart_id', Edit2.Text);
+      Obj.AddPair('isim_soyisim', Edit3.Text);
+      Obj.AddPair('kisi', Edit4.Text);
+      Obj.AddPair('ucret', Edit5.Text);
+
+      TFile.WriteAllText(FileName, Arr.Format(2), TEncoding.UTF8);
+      MessageDlg('Uye guncellendi', mtInformation, [mbOK], 0);
+      Exit;
+    end;
+  end;
+
+  MessageDlg('Guncellenecek uye bulunamadi', mtError, [mbOK], 0);
+end;
+
+end.
+

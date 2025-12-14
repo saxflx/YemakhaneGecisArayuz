@@ -1,0 +1,239 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows,
+  System.SysUtils, System.Classes,
+  Vcl.Forms, Vcl.StdCtrls, Vcl.Dialogs,
+  System.JSON, System.IOUtils, Vcl.Controls, System.UITypes;
+
+type
+  TForm1 = class(TForm)
+    Edit1: TEdit; // ID
+    Edit2: TEdit; // Kart ID
+    Edit3: TEdit; // Ýsim Soyisim
+    Edit4: TEdit; // Kiþi
+    Edit5: TEdit; // Ücret
+    Edit6: TEdit; // Bakiye
+
+    Button1: TButton; // GETÝR
+    Button2: TButton; // GÜNCELLE
+    Button3: TButton; // SÝL
+    Button4: TButton; // KAPAT
+
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+  private
+    procedure UyeGetir;
+    procedure UyeGuncelle;
+    procedure UyeSil;
+    function NormalizeUcret(const S: string; out OutValue: string): Boolean;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function JSONDosya: string;
+begin
+  Result := TPath.Combine(TPath.GetDocumentsPath, 'veriler.json');
+end;
+
+function JSONValueToStr(Obj: TJSONObject; const Key: string): string;
+var
+  V: TJSONValue;
+begin
+  Result := '';
+  V := Obj.GetValue(Key);
+  if V <> nil then
+    Result := V.Value.Replace('"','');
+end;
+
+function TForm1.NormalizeUcret(const S: string; out OutValue: string): Boolean;
+var
+  D: Double;
+  T: string;
+begin
+  Result := False;
+  T := Trim(S);
+
+  if SameText(T, 'ücretsiz') or SameText(T, 'ucretsiz') then
+  begin
+    OutValue := 'Ücretsiz';
+    Exit(True);
+  end;
+
+  if SameText(T, 'ücretli') or SameText(T, 'ucretli') then
+  begin
+    OutValue := 'Ücretli';
+    Exit(True);
+  end;
+
+  if TryStrToFloat(StringReplace(T, ',', '.', [rfReplaceAll]), D) then
+  begin
+    OutValue := T;
+    Exit(True);
+  end;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  UyeGetir;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  UyeGuncelle;
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+begin
+  UyeSil;
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TForm1.UyeGetir;
+var
+  Arr: TJSONArray;
+  Obj: TJSONObject;
+  i: Integer;
+begin
+  if not TFile.Exists(JSONDosya) then Exit;
+
+  Arr := TJSONObject.ParseJSONValue(
+    TFile.ReadAllText(JSONDosya, TEncoding.UTF8)
+  ) as TJSONArray;
+
+  if Arr = nil then Exit;
+
+  for i := 0 to Arr.Count - 1 do
+  begin
+    Obj := Arr.Items[i] as TJSONObject;
+
+    if StrToIntDef(JSONValueToStr(Obj,'ID'), -1) =
+       StrToIntDef(Trim(Edit1.Text), -2) then
+    begin
+      Edit2.Text := JSONValueToStr(Obj,'kart_id');
+      Edit3.Text := JSONValueToStr(Obj,'isim_soyisim');
+      Edit4.Text := JSONValueToStr(Obj,'kisi');
+      Edit5.Text := JSONValueToStr(Obj,'ucret');
+      Edit6.Text := JSONValueToStr(Obj,'bakiye');
+      Arr.Free;
+      Exit;
+    end;
+  end;
+
+  Arr.Free;
+  MessageDlg('Üye bulunamadý', mtError, [mbOK], 0);
+end;
+
+procedure TForm1.UyeGuncelle;
+var
+  Arr: TJSONArray;
+  Obj: TJSONObject;
+  i: Integer;
+  UcretNorm: string;
+begin
+  if not NormalizeUcret(Edit5.Text, UcretNorm) then
+  begin
+    MessageDlg(
+      'Ücret geçersiz! Ücretli / Ücretsiz veya sayý girin.',
+      mtError, [mbOK], 0
+    );
+    Exit;
+  end;
+
+  if not TFile.Exists(JSONDosya) then Exit;
+
+  Arr := TJSONObject.ParseJSONValue(
+    TFile.ReadAllText(JSONDosya, TEncoding.UTF8)
+  ) as TJSONArray;
+
+  if Arr = nil then Exit;
+
+  for i := 0 to Arr.Count - 1 do
+  begin
+    Obj := Arr.Items[i] as TJSONObject;
+
+    if StrToIntDef(JSONValueToStr(Obj,'ID'), -1) =
+       StrToIntDef(Trim(Edit1.Text), -2) then
+    begin
+      Obj.RemovePair('kart_id');
+      Obj.RemovePair('isim_soyisim');
+      Obj.RemovePair('kisi');
+      Obj.RemovePair('ucret');
+      Obj.RemovePair('bakiye');
+
+      Obj.AddPair('kart_id', Edit2.Text);
+      Obj.AddPair('isim_soyisim', Edit3.Text);
+      Obj.AddPair('kisi', Edit4.Text);
+      Obj.AddPair('ucret', UcretNorm);
+      Obj.AddPair('bakiye', TJSONNumber.Create(StrToIntDef(Edit6.Text, 0)));
+
+      TFile.WriteAllText(JSONDosya, Arr.Format(2), TEncoding.UTF8);
+      Arr.Free;
+
+      Edit5.Text := UcretNorm;
+      MessageDlg('Üye güncellendi', mtInformation, [mbOK], 0);
+      Exit;
+    end;
+  end;
+
+  Arr.Free;
+  MessageDlg('Güncellenecek üye bulunamadý', mtError, [mbOK], 0);
+end;
+
+procedure TForm1.UyeSil;
+var
+  Arr: TJSONArray;
+  i: Integer;
+begin
+  if MessageDlg(
+       'Bu üyeyi silmek istediðinize emin misiniz?',
+       mtConfirmation, [mbYes, mbNo], 0
+     ) <> mrYes then Exit;
+
+  if not TFile.Exists(JSONDosya) then Exit;
+
+  Arr := TJSONObject.ParseJSONValue(
+    TFile.ReadAllText(JSONDosya, TEncoding.UTF8)
+  ) as TJSONArray;
+
+  if Arr = nil then Exit;
+
+  for i := Arr.Count - 1 downto 0 do
+  begin
+    if StrToIntDef(
+         JSONValueToStr(Arr.Items[i] as TJSONObject,'ID'), -1
+       ) = StrToIntDef(Trim(Edit1.Text), -2) then
+    begin
+      Arr.Remove(i);
+      TFile.WriteAllText(JSONDosya, Arr.Format(2), TEncoding.UTF8);
+      Arr.Free;
+      MessageDlg('Üye silindi', mtInformation, [mbOK], 0);
+      Exit;
+    end;
+  end;
+
+  Arr.Free;
+  MessageDlg('Silinecek üye bulunamadý', mtError, [mbOK], 0);
+end;
+
+end.
+

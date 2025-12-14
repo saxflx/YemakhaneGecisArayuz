@@ -1,0 +1,84 @@
+unit UnitLogin;
+
+interface
+
+uses
+  System.SysUtils, System.Classes,
+  System.Hash,
+  Vcl.Forms, Vcl.StdCtrls, Vcl.Controls;
+
+type
+  TFormLogin = class(TForm)
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Button1: TButton;
+    Label1: TLabel;
+    procedure Button1Click(Sender: TObject);
+  private
+    function SecretKey: string;
+    function HMAC_SHA256(const S: string): string;
+    function BytesToHex(const B: TBytes): string;
+  end;
+
+var
+  FormLogin: TFormLogin;
+
+implementation
+
+{$R *.dfm}
+
+uses Unit2;
+
+{ Gizli anahtar – parçalý }
+function TFormLogin.SecretKey: string;
+begin
+  Result :=
+    'K3y!' +
+    '_Local_' +
+    'Admin_' +
+    '77';
+end;
+
+{ Byte[] -> hex (lowercase) }
+function TFormLogin.BytesToHex(const B: TBytes): string;
+const
+  Hex: array[0..15] of Char = '0123456789abcdef';
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(B) * 2);
+  for I := 0 to High(B) do
+  begin
+    Result[I*2 + 1] := Hex[B[I] shr 4];
+    Result[I*2 + 2] := Hex[B[I] and $0F];
+  end;
+end;
+
+{ HMAC-SHA256 – ATHENS UYUMLU }
+function TFormLogin.HMAC_SHA256(const S: string): string;
+begin
+  Result := THashSHA2.GetHMAC(
+    S,
+    SecretKey,
+    THashSHA2.TSHA2Version.SHA256
+  );
+end;
+
+
+procedure TFormLogin.Button1Click(Sender: TObject);
+const
+  ADMIN_HASH = 'BURAYA_admin_HASH';
+  PASS_HASH  = 'BURAYA_1234_HASH';
+begin
+  if (HMAC_SHA256(Edit1.Text) = ADMIN_HASH) and
+     (HMAC_SHA256(Edit2.Text) = PASS_HASH) then
+  begin
+    Form2.Show;
+    Self.Hide;
+  end
+  else
+    Label1.Caption := 'Yetkisiz eriþim!';
+end;
+
+end.
+
